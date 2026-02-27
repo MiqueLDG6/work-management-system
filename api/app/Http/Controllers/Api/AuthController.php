@@ -12,16 +12,16 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
+        // Esto es lo que busca Laravel: compara email + password con la DB
+        $credentials = $request->only('email', 'password');
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!Auth::attempt($credentials)) {  // <--- Aquí está Auth::attempt
+            return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401);
         }
+
+        $user = Auth::user(); // obtiene el usuario autenticado
 
         $token = $user->createToken('api-token')->plainTextToken;
 
